@@ -1,0 +1,55 @@
+#include "resource.h"
+
+1   24    "XPTheme.xml"
+APPICON   ICON icon\main.ICO
+NOTEICON  ICON icon\edit.ICO
+SEDICON_EDIT ICON   img\SED_EDIT.ICO
+
+SPLASH    BITMAP img\SPLASH.BMP
+TBDIS     BITMAP img\CMDISABLED.BMP     // Toolbar/Menu Disabled Bitmap
+TBNOR     BITMAP img\CMNORMAL.BMP       // Toolbar/Menu Normal Bitmap
+TBHOT     BITMAP img\CMHOT.BMP          // Toolbar/Menu Hot Selected Bitmap
+RBBACK    BITMAP img\RBBACK.BMP         // Rebar/Bands Background Bitmap
+WINTBDIS  BITMAP img\WINDIS.BMP
+WINTBNOR  BITMAP img\WINNOR.BMP
+WINTBHOT  BITMAP img\WINHOT.BMP
+PAL       BITMAP img\PAL.BMP
+XYBM      BITMAP img\xy.bmp        // x,y bitmap for position,size
+CXYBM     BITMAP img\cxy.bmp
+
+BMP_TOP     BITMAP img\TOP.BMP
+BMP_BOTTOM  BITMAP img\BOTTOM.BMP
+BMP_LEFT    BITMAP img\LEFT.BMP
+BMP_RIGHT   BITMAP img\RIGHT.BMP
+
+BMP_HTOP    BITMAP img\H_TOP.BMP
+BMP_HBOTTOM BITMAP img\H_BOTTOM.BMP
+BMP_HLEFT   BITMAP img\H_LEFT.BMP
+BMP_HRIGHT  BITMAP img\H_RIGHT.BMP
+
+HRZCURSOR CURSOR img\ho_split.cur
+VRTCURSOR CURSOR img\Vt_split.cur
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEOS VOS_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName",      "XSOFT, Inc.\0"
+      VALUE "FileDescription",  "IDE for PowerBASIC\0"
+      VALUE "FileVersion",      "1.00\0"
+      VALUE "InternalName",     "Visual PowerBASIC\0"
+      VALUE "OriginalFilename", "Visual PowerBASIC.exe\0"
+      VALUE "LegalCopyright",   "Copyright 2011 xsoft\0"
+      VALUE "LegalTrademarks",  "Visual PowerBASic is a trademark of xsoft\0"
+      VALUE "ProductName",      "Visual PowerBASIC\0"
+      VALUE "ProductVersion",   "1.00\0"
+      VALUE "Comments",         "Visual PowerBASIC IDE for Windows.\0"
+    END
+  END
+END

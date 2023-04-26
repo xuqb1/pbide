@@ -1,0 +1,167 @@
+resource.rc '资源文件
+main.bas    '主程序文件
+  CreateGuiderWindow(hParent) '创建向导窗口
+  GetEdit() 得到当前激活的子编辑控件
+  SUB GetRecentFiles
+  FUNCTION GetStringTable(BYVAL ID AS LONG) AS STRING '获取菜单项对应的描述内容
+  CALLBACK FUNCTION GuiderTabProc   '向导窗口的Tab回调
+  SUB HideButtons(HideState)      '控制主窗口的菜单、工具栏按钮的可用与不可用
+  SUB LoadDefaultLayout           '加载默认的各工具窗口位置
+  SUB LoadSettingLayout           '加载设置的各工具窗口位置
+  MakeAccelerators                '快捷键命令
+  MakeMenu                        '创建菜单  
+  OpenThisFile(fn as string)      '打开文件
+  WINMAIN                         '主函数，程序入口
+  WndProc                         '主函数回调
+  SUB WriteRecentFiles            '写最近文件
+contants.inc  '常量定义头文件
+globalvar.inc '全局变量定义
+include.inc   '包含头文件及程序文件的头文件
+  win32api.inc    '系统头文件
+  CommCtrl.inc    '系统头文件
+  ComDlg32.inc    '系统头文件
+  MDI32.inc       '系统头文件
+  sqlite.inc      '系统头文件
+  util.bas        '数据库操作及其他通用性方法
+  splash.bas      '闪屏窗口
+  option.bas      '选项对话框
+  edit.bas        '用来实现代码编辑窗口
+  toolbar.bas     '工具栏
+  dock.bas        '泊坞处理
+  toolwin.bas     '工具窗口
+util.bas        '数据库操作及其他通用性方法
+  TYPE AppParametersTYPE
+    sAppPath     AS STRING * %MAX_PATH      ' 程序路径.
+    sAppIniPath  AS STRING * %MAX_PATH      ' 程序INI文件路径.
+    sAppDbPath   AS STRING * %MAX_PATH      ' 程序数据库路径.
+    sAppIdxPath  AS STRING * %MAX_PATH      ' 程序数据库目录路径.
+    lSplashTime  AS LONG                    ' 程序闪屏计时.
+    sbDateFmt    AS LONG                    ' 状态栏日期格式.
+    sbTimeFmt    AS LONG                    ' 状态栏时间格式.
+    rbRowCount   AS LONG                    ' Rebar 行数.
+    rbBandCount  AS LONG                    ' Rebar 段数.
+    rbBand0      AS LONG                    ' Rebar 0段是否被移动.
+    rbBand1      AS LONG                    ' Rebar 0段是否被移动.
+    sbTimePart   AS LONG                    ' 状态栏时间栏数.
+    sbDatePart   AS LONG                    ' 状态栏日期栏数.
+  END TYPE
+  AppLoadParams           '从INI文件读取所有的程序参数udtAp.sAppIniPath
+                          '  udtAp AS AppParametersTYPE
+  AppPath                 '返回程序路径.  
+  AppSaveParams           '保存程序所有参数到INI文件.
+  CenterWindow            '将给定hWnd句柄的任何窗口置中.
+  CenterWindowRel         '将给定hWnd句柄有关系的所有窗口置中. 
+  CreateDibPalette        '使用模板创建DIB位图. 
+  DrawBitMap              '绘制闪屏窗口位图. 
+  ExecuteURL              '执行窗口程序，MAIL Web浏览器等
+  ExeFile                 '执行文件.
+  Exist                   ' 判断文件是否存在 
+  FileExist               '确认某个文件或文件是否存在 
+  FileNam                 ' 获取给定路径中的文件名部分 
+  FilePath                ' 获取给定路径中的路径部分 
+  GetProperty             '从config.INI文件读取属性值
+  IniDelKey               '删除INI文件中的键值.  
+  IniDelSection           '删除INI文件中的段. 
+  IniRead                 '从程序INI文件读取数据.
+  InitConfig              '初始化配置到数据库：
+                          '默认配置表，配置表，数据集表的语言，
+                          '字符串语言表   
+  IniWrite                '保存数据到程序INI文件. 
+  IsWin95                 ' 是否是 Windows 95   
+  LoadBitmapRes           '从资源文件加载闪屏窗口位图.  
+  MakeDB                  '创建数据库，创建其中的表:
+                          ‘   配置表，默认配置表，数据集表，字符串语言表
+                          '   控件样式表
+  MakeFont                '创建新字体，返回新字体句柄. 
+  OnlyOneInstance         '只允许有一个程序实例运行
+  SUB PBCopyMemory        '复制内存.
+  PbDoEvents              '为程序做事件响应缓冲
+  ReadConfig              '从数据库读取配置项
+  ReaDataset              '从数据库读取数据集
+  ReadDefaultConfig       '从数据库读取默认配置项
+  ReadLang                '读取某个原始字符串的相应的语言对应的字符串 
+  SetProperty             '保存属性值到AppProps.ini文件
+  WriteConfig             '往数据库中写入全局变量配置项：t_config表
+splash.bas      '闪屏窗口
+  CreateSplash(hInst)     '创建闪屏窗口
+  SplashProc              '闪屏回调程序
+option.bas      '选项对话框
+  ShowOptionWin           '构造并显示选项窗口
+  TabProc                 '选项Tab回调
+  SUB InitOption          '初始化选项
+  GetColor(rgbColor as string)  '从以字符串形式表达的三段式值转成颜色整体值
+  SUB FillFontCombo       '用系统字体填充组合框
+  EnumFontName            '对要填充到组合框中的字体进行过滤
+  SUB SaveOption          '保存选项到数据库中
+  red                     '从整体颜色值中取出红色部分
+  blue                    '从整体颜色值中取出蓝色部分
+  green                   '从整体颜色值中取出绿色部分
+  SUB LoadDefaultOption   '加载默认选项
+  OptionWinProc           '选项窗口回调
+  SetLanguage             '设置语言
+  SetOptionLang           '对选项对话框设置语言
+  SetControlLang          '给特定窗口的特定控件设置语言
+  SetMenuLang             '对所有菜单设置语言
+  SetMenuItemLang         '设置菜单项的语言
+  RegistryFileType        '注册文件类型关联打开到本程序，或取消注册
+  LoadDefaultColor        '加载默认颜色
+  GetLang                 '根据原始字符串返回当前语言相对应的字符串
+edit.bas        '用来实现代码编辑窗口
+  initEditClass           '初始化代码编辑器类
+  CodeProc                '代码编辑窗口回调
+  GetLineText             ' 从编辑控件获得指定的行
+  SUB PrintDocument       ' 基本打印过程
+  SUB SAVEFILE            ' 保存过程
+toolbar.bas     '工具栏
+  AppLoadBitmaps        '从资源文件加载程序位图
+  CreateToolBar         '创建工具的工具栏
+  CreateWindowBar       '创建窗口的工具栏
+  CreateDebugBar        '创建编译运行调试工具栏
+  WndStatusSizeProc     '自定义的状态栏回调
+  CreateCodeEditBar     '创建代码编辑工具栏
+  CreateWinArragBar     '创建窗口重排工具栏
+  CreateComboBox        '创建Combo Box并增加到ReBar控件上
+  SaveRebarBand         '保存Rebar条位置
+  CreateRebar           '创建Rebar控件
+  MakeRebarMenu         '创建弹出Rebar 设置菜单
+  SUB SaveRebarConfig   '保存Rebar配置
+  ShowBand              '显示Rebar
+  GetMenuTextAndBitmap  '获得菜单文本及图标
+  GetMenuBmpHandle      '获得菜单位图句柄
+  DrawMenu              '绘制菜单
+  MeasureMenu           '检测菜单
+  LockBar               '锁定Rebar工具条
+dock.bas        '泊坞处理
+  GetOwner              '获得当前窗口/控件的所有者，与父窗口不同
+  SaveDockInfo          '保存Dock信息到记录文件中
+  ReadDockInfo          '从记录文件中读取Dock信息到数组
+  SaveSizeInfo          '保存Size信息到记录文件中
+  ReadSizeInfo          '从记录文件中读取Size信息到数组
+  InitDockInfo          '初始dockArr数组
+  SetDockInfoToWin      ' 窗口被创建后对窗口关联相应的dock数组元素
+  DrawRectangle         ' 画泊坞矩形
+  GetWinPtIn            '获取鼠标所在位置的窗口句柄
+  HitTestMain           '拖动时检测应该将被拖动窗口放到目标窗口的什么位置
+  SUB SplitBarInvertLine' 在鼠标拖动分隔条操作期间,绘制分隔条
+  SUB Repaint           '窗口重绘
+  AdjustHideWinAround   ' 窗口关闭时调整其周围的窗口
+  DivSizeProc           '分隔调整大小控件(调节器)回调
+  AdjustToolWinByrSize  '根据主窗口尺寸调整工具窗口
+  AdjustnSize           ' 用鼠标移动了一个DivSize的位置后，自动调整其上下，或左右相接的DivSize
+  InitDivClass          '注册调节器类
+  CreateDivSize         ' 创建调节器
+  AdjustShowWinAround   '窗口停靠后，调整周围的窗口，并添加相应的调节器
+  Drag_LButtonDown      '拖动-鼠标左键按下
+  Drag_MouseMove        '拖动-鼠标移动
+  Drag_LButtonUp        '拖动-鼠标左键弹起
+  Drag_DrawCaption      '拖动-绘制标题栏
+  main_Size             '主窗口调整大小
+  SetToolWinsPSbyRSize  
+  ShowWin               '显示窗口
+toolwin.bas     '工具窗口
+  ToolProc_NOTIFY       '工具窗口回调Notify处理
+  ToolContainProc       '工具窗口回调容器处理
+  ToolProc_CREATE       '创建工具窗口
+  ToolWinProc           '工具窗口回调
+  CreateToolWin         '创建工具窗口
+  

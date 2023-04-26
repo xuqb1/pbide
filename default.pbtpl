@@ -1,0 +1,11 @@
+1
+.bas
+Ò»°ã PB ³ÌÐòÄ£°å
+#COMPILE EXE
+#DIM ALL
+
+FUNCTION PBMAIN () AS LONG
+
+    |
+
+END FUNCTION

@@ -1,0 +1,120 @@
+1
+.bas
+PB窗口程序模板
+'==============================================================================
+'
+' 程序说明
+'
+'   所属项目：
+'   文件名：
+'   功能说明：
+'   逻辑描述：
+'   文件版本：
+'   创建时间：
+'   修改时间：
+'
+'==============================================================================
+#COMPILER PBWIN 9
+#COMPILE EXE
+#DIM ALL
+
+'------------------------------------------------------------------------------
+' 初始声明 - 移除COMMCTRL.INC中不需要的函数
+'------------------------------------------------------------------------------
+%NOANIMATE        = 1  ' Animate control
+%NOBUTTON         = 1  ' Button
+%NOCOMBO          = 1  ' Combo box
+%NOCOMBOEX        = 1  ' ComboBoxEx
+%NODATETIMEPICK   = 1  ' Date/time picker
+%NODRAGLIST       = 1  ' Drag list control
+%NOEDIT           = 1  ' Edit control
+%NOFLATSBAPIS     = 1  ' Flat scroll bar
+%NOHEADER         = 1  ' Header control
+%NOHOTKEY         = 1  ' HotKey control
+%NOIMAGELIST      = 1  ' Image APIs
+%NOIPADDRESS      = 1  ' IP Address edit control
+%NOLIST           = 1  ' List box control
+%NOLISTVIEW       = 1  ' ListView control
+%NOMENUHELP       = 1  ' Menu help
+%NOMONTHCAL       = 1  ' MonthCal
+%NOMUI            = 1  ' MUI
+%NONATIVEFONTCTL  = 1  ' Native Font control
+%NOPAGESCROLLER   = 1  ' Pager
+%NOPROGRESS       = 1  ' Progress control
+%NOREBAR          = 1  ' Rebar control
+%NOSTATUSBAR      = 1  ' Status bar
+%NOTABCONTROL     = 1  ' Tab control
+%NOTOOLBAR        = 1  ' Tool bar
+%NOTOOLTIPS       = 1  ' Tool tips
+%NOTRACKBAR       = 1  ' Track bar
+%NOTRACKMOUSEEVENT = 1 ' Track Mouse Event
+%NOTREEVIEW       = 1  ' TreeView
+%NOUPDOWN         = 1  ' Up Down arrow control
+
+
+'------------------------------------------------------------------------------
+' 头文件
+'------------------------------------------------------------------------------
+%USEMACROS = 1
+
+#INCLUDE "Win32API.inc"
+#INCLUDE "CommCtrl.inc"
+#INCLUDE "InitCtrl.inc"
+
+
+'------------------------------------------------------------------------------
+' ID变量声明
+'------------------------------------------------------------------------------
+%IDC_OK = %WM_USER + 2048
+%IDC_CANCEL  = %WM_USER + 2049
+%IDC_CLOSE  = %WM_USER + 2050
+
+
+'------------------------------------------------------------------------------
+' 主回调函数
+'------------------------------------------------------------------------------
+CALLBACK FUNCTION DlgProc () AS LONG
+
+  SELECT CASE CB.MSG
+    CASE %WM_INITDIALOG
+      
+    CASE %WM_COMMAND
+      ' Trap only click events
+      IF CB.CTLMSG <> %BN_CLICKED THEN EXIT SELECT
+
+      SELECT CASE CB.CTL
+        CASE %IDC_OK
+          
+        CASE %IDC_CANCEL
+          
+        CASE %IDC_CLOSE
+          DIALOG END CB.HNDL, 0
+        CASE %IDCANCEL
+          DIALOG END CB.HNDL, 0
+      END SELECT
+    CASE %WM_SYSCOLORCHANGE
+      
+  END SELECT
+END FUNCTION
+
+
+'------------------------------------------------------------------------------
+' 应用程序主入口点
+'------------------------------------------------------------------------------
+FUNCTION PBMAIN () AS LONG
+
+  LOCAL hDlg AS DWORD
+
+  InitComCtl32(%ICC_ANIMATE_CLASS)
+
+  DIALOG NEW 0, "程序标题",,, 185, 60, %WS_CAPTION OR %WS_SYSMENU, _
+    0 TO hDlg
+
+  CONTROL ADD BUTTON, hDlg, %IDC_OK, "确定",  6, 40,  30,  14
+  CONTROL ADD BUTTON, hDlg, %IDC_CANCEL,  "取消",  41, 40,  30,  14
+  CONTROL ADD BUTTON, hDlg, %IDC_CLOSE,  "关闭",  76, 40,  30,  14
+  CONTROL ADD BUTTON, hDlg, %IDCANCEL,  "退出", 111, 40,  30,  14
+  |
+  DIALOG SHOW MODAL hDlg CALL DlgProc
+
+END FUNCTION

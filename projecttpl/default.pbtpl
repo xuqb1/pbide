@@ -1,0 +1,14 @@
+' 项目名称：{prjname}
+' 项目描述：
+' 作者：{author}
+' 创建时间：
+
+' 项目主文件
+#COMPILE EXE
+#DIM ALL
+' 程序入口
+FUNCTION PBMAIN () AS LONG
+
+    |
+
+END FUNCTION

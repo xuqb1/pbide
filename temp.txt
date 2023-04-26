@@ -1,0 +1,384 @@
+TYPE WndID            '窗口句柄及ID类型
+  hWnd AS DWORD
+  wID  AS DWORD
+END TYPE
+TYPE DivSize          '分隔条类型
+  thisWin AS WndID
+  nDir    AS INTEGER  '方向，0表示横向，1表示纵向
+  rc      AS RECT     '调节器的大小和位置
+  isVisible as INTEGER '调节器是否显示，1表示显示
+  arrInd  AS INTEGER  '实例在nSize数组中的索引
+END TYPE
+TYPE DockInfo
+  thisWin     AS WndID    '本窗口的句柄、ID
+  'ParentWin   AS WndID    '“父”窗口的句柄、ID
+  dockRC      AS RECT     '停靠时的位置，用于初始化
+  floatRC     AS RECT     '浮动时的位置，用于初始化
+  isMDIClient AS INTEGER  '主客户区：1表示是
+  'position    AS INTEGER  '相对于“父”窗口的位置，0为浮动，1，2，3，4分别表示上下左右
+  isVisible   AS INTEGER  '本窗口是否可见，用于初始化
+  isDocked    AS INTEGER  '浮动还是停靠状态：0为浮动，1为停靠
+  rSize(3)    AS INTEGER  '本窗口周围的调节器在nSize数组中的索引句柄、ID,上下左右
+  arrInd      AS INTEGER  '实例在dockArr数组中的索引
+END TYPE
+' 窗口只能在关联了DockInfo结构的窗口中停靠
+' 窗口要停靠时，使用被停靠的窗口的调整条，并与被停靠窗口之间建立调整条
+' 窗口要浮动时，检测四周与该窗口的宽度一致的调整条，调整与该调整条的宽度一致的上左，下右的窗口的大小
+%ID_TOOLWINDOW        = %WM_USER    + 1100&
+%ID_CLIENTWINDOW      = %WM_USER    + 1101&
+%ID_PROJECTWINDOW     = %WM_USER    + 1102&
+%ID_PROPERTYWINDOW    = %WM_USER    + 1103&
+%ID_COMPILEWINDOW     = %WM_USER    + 1104&
+%ID_FINDRESULTWINDOW  = %WM_USER    + 1105&
+%POPUP_STYLES         = %WS_POPUP OR %WS_CLIPCHILDREN OR %WS_CLIPSIBLINGS OR %WS_THICKFRAME
+%POPUP_EXSTYLES       = %WS_EX_TOOLWINDOW OR %WS_EX_WINDOWEDGE
+%CHILD_STYLES         = %WS_CHILD OR %WS_CLIPCHILDREN OR %WS_CLIPSIBLINGS
+%CHILD_EXSTYLES       = 0
+GLOBAL hToolWin   AS DWORD
+GLOBAL hClientWin AS DWORD
+GLOBAL hProjWin   AS DWORD
+GLOBAL hPropWin   AS DWORD
+GLOBAL hComplWin  AS DWORD
+GLOBAL hFindReWin AS DWORD
+GLOBAL gLocation  AS LONG
+GLOBAL nSize()    AS DIVSIZE
+GLOBAL dockArr()  AS DOCKINFO 
+'GLOBAL g_hWndMain as DWORD
+' 获取窗口的所有者
+FUNCTION GetOwner(BYVAL hWnd AS DWORD)AS DWORD 
+' 切换停靠与浮动状态
+FUNCTION TogglePopupStyle(BYVAL hWnd AS DWORD)AS LONG 
+'保存Dock信息到记录文件中
+SUB SaveDockInfo(BYVAL filename AS STRING) 
+'从记录文件中读取Dock信息到数组
+FUNCTION ReadDockInfo(BYVAL filename AS STRING) AS LONG
+'保存Size信息到记录文件中
+SUB SaveSizeInfo(BYVAL filename AS STRING) 
+'从记录文件中读取Size信息到数组
+FUNCTION ReadDockInfo(BYVAL filename AS STRING) AS LONG 
+'初始dockArr数组
+FUNCTION InitDockInfo() AS LONG  
+' 窗口被创建后对窗口关联相应的dock数组元素
+FUNCTION SetDockInfoToWin(BYVAL hWnd AS DWORD,BYVAL wID AS LONG)AS LONG 
+' 画泊坞矩形
+SUB DrawRectangle (ptStart AS POINTAPI,ptEnd AS POINTAPI) 
+'MDI初始化时，根据dockArr数组中各元素的wID成员值，调用本函数
+FUNCTION CreateToolWindows(BYVAL hParent AS DWORD,BYVAL wID AS DWORD)AS LONG
+'获取鼠标所在位置的窗口句柄
+FUNCTION GetWinPtIn(BYVAL hWnd AS DWORD ,pt AS POINTAPI) AS LONG 
+'拖动时检测应该将被拖动窗口放到目标窗口的什么位置
+FUNCTION HitTestMain( BYVAL hWnd AS LONG, pt AS POINTAPI ) AS INTEGER 
+' 在鼠标拖动分隔条操作期间,绘制分隔条
+' nDir=> 绘制水平=0 or 垂直=1
+'-----------------------------------------------------------------------------
+SUB SplitBarInvertLine( BYVAL hWnd AS LONG,BYVAL xleft1 AS INTEGER, _
+            BYVAL yFrom AS INTEGER,BYVAL xleft2 AS INTEGER , _
+            BYVAL yTo AS INTEGER, BYVAL nDir AS LONG )
+' 窗口关闭时调整其周围的窗口
+FUNCTION AdjustHideWinAround(BYVAL hWnd)AS LONG 
+
+0,0,628,111
+0,0,628,6
+0,0,628,362
+
+382,363,1018,482
+384,446,1012,452
+384,341,1016,707
+
+hWnd RC: 382,363,1018,482
+Size Window RC: 380,450,1016,456
+Size Client RC: 0,0,636,6
+hParent Window RC: 380,456,1016,1074
+
+Size Window RC: 382,482,1018,488
+hParent Window RC: 382,488,1018,1074
+'选项对话框
+  CONTROL ADD BUTTON, hDlg, %IDOK, "&OK", 190, 210, 50, 14, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_TABSTOP, _
+              %WS_EX_NOPARENTNOTIFY
+
+  CONTROL ADD BUTTON, hDlg, %IDCANCEL, "&Cancel", 245, 210, 50, 14, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_TABSTOP, _
+              %WS_EX_NOPARENTNOTIFY
+
+  CONTROL ADD BUTTON, hDlg, %IDC_APPLYBUT, "&Apply", 301, 210, 50, 14, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_DISABLED OR %WS_TABSTOP, _
+              %WS_EX_NOPARENTNOTIFY
+
+  CONTROL ADD BUTTON, hDlg, %IDC_HELPBUT, "&Help", 356, 210, 50, 14, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_TABSTOP, _
+              %WS_EX_NOPARENTNOTIFY
+
+  CONTROL ADD BUTTON, hDlg, %IDC_DEFAULTBUT, "Default", 5, 210, 50, 14, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_TABSTOP, _
+              %WS_EX_NOPARENTNOTIFY
+  InitCommonControls
+  REDIM tmpStr(10)
+  tmpStr(0)="General"
+  tmpStr(1)="File"
+  tmpStr(2)="Code Editor"
+  tmpStr(3)="Color"
+  tmpStr(4)="Window Editor"
+  tmpStr(5)="Compile"
+  tmpStr(6)="Print"
+  tmpStr(7)="Hotkey"
+  CONTROL ADD LISTBOX, hDlg,%IDC_MAINLISTBOX,tmpStr(),5,5,105,200, _
+              %WS_VSCROLL OR %WS_TABSTOP, %WS_EX_CLIENTEDGE
+  LISTBOX SELECT  hDlg,%IDC_MAINLISTBOX,0
+  ' 这是底部的OK，CANCEL按钮上面的那条线
+  CONTROL ADD LINE, hDlg,  -1, "", 115, 203, 289, 1, _
+              %WS_CHILD OR %WS_VISIBLE OR %SS_ETCHEDHORZ, _
+              %WS_EX_STATICEDGE OR %WS_EX_NOPARENTNOTIFY
+
+  '从这里开始各个页面
+  '第一个页面是General(常规)
+  DIALOG NEW hDlg, "", 119, 5, 473, 189, _
+              %WS_CHILD OR %DS_3DLOOK OR %DS_SETFONT OR %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(0)=hTab  '保存句柄到数组，以用来在后面显示窗口
+  '这是窗口上部的那条横线
+  CONTROL ADD LINE    , hTab,  -1, "", 17, 7, 269, 1
+  CONTROL ADD LABEL   , hTab,  %IDC_LABELPAGESIGN, "General", 0, 3, 30, 8, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_GROUP, _
+              %WS_EX_NOPARENTNOTIFY
+  CONTROL ADD CHECKBOX, hTab, %IDC_SHOWWELCOME      , "Show welcome window when startup", 5,17,200,8        '启动时显示欢迎窗口
+  CONTROL ADD CHECKBOX, hTab, %IDC_SHOWGUILD        , "Show guilder window after startup", 5, 31,200,8        '启动后显示向导窗口
+  CONTROL ADD FRAME   , hTab, %IDC_MAINWINDOWPOS    , "Main window pos && size", 5, 45, 220,100 '主窗口位置及大小
+  CONTROL ADD OPTION  , hTab, %IDC_DEFAULTPOSSIZE   , "Use default position and size", 10,59,170,8, _ '使用默认大小与位置
+                                                      %WS_TABSTOP OR %BS_LEFT OR %BS_VCENTER OR %WS_GROUP
+  CONTROL ADD OPTION  , hTab, %IDC_FIXPOSSIZE       , "Use fix position and size", 10,73,170,8 '使用固定大小与位置
+  CONTROL ADD OPTION  , hTab, %IDC_USELASTPOSSIZE   , "Use the position and size for last",10,129,170,8 '使用上次的大小与位置
+  CONTROL ADD FRAME   , hTab, %IDC_POSITION         , "Position",20,84,120,42 '位置
+  CONTROL ADD OPTION  , hTab, %IDC_SETCENTER        , "Center", 25,98, 50,8, _ '居中
+                                                      %WS_TABSTOP OR %BS_LEFT OR %BS_VCENTER OR %WS_GROUP
+  CONTROL ADD OPTION  , hTab, %IDC_SETPOSITION      , "Special", 25,112,35,8 '指定
+  CONTROL ADD LABEL   , hTab, %IDC_LABELX           , "X:",65,113,10,8 'X:
+  CONTROL ADD TEXTBOX , hTab, %IDC_SETX             , "", 75,112,20,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELY           , "Y:",98,113,10,8
+  CONTROL ADD TEXTBOX , hTab, %IDC_SETY             , "", 108,112,20,12
+  CONTROL ADD FRAME   , hTab, %IDC_MAINWINDOWSIZE   , "Size", 145,84,60,42
+  CONTROL ADD LABEL   , hTab, %IDC_LABELWIDTH       , "Width:",150,98,30,8
+  CONTROL ADD TEXTBOX , hTab, %IDC_SETWIDTH         , "", 175,96,20,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELHEIGHT      , "Height:",150,112,30,8
+  CONTROL ADD TEXTBOX , hTab, %IDC_SETHEIGHT        , "", 175,111,20,12
+  CONTROL ADD LABEL   , hTab, %IDC_LANGUAGE         , "Please select language for this application:",5,150,220,8 '选择语言
+  CONTROL ADD COMBOBOX, hTab, %IDC_SETLANGUAGE      , ,85,163,80,80
+
+  '第二个页面是File(文件)
+  DIALOG NEW hDlg, "", 119, 5, 464, 184, _
+              %WS_CHILD OR %DS_3DLOOK OR %DS_SETFONT OR %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(1)=hTab
+  CONTROL ADD LINE    , hTab,  -1, "", 17, 7, 269, 1
+  CONTROL ADD LABEL   , hTab, %IDC_LABELPAGESIGN    , "File", 0, 3, 13, 8, _
+                                                    %WS_CHILD OR %WS_VISIBLE OR %WS_GROUP, _
+                                                    %WS_EX_NOPARENTNOTIFY
+  CONTROL ADD FRAME   , hTab, %IDC_FILETYPE         ,"Type",5,17,220,103
+  CONTROL ADD LABEL   , hTab, %IDC_LABLESOURCEFILE  , "PB Source File:",10,31,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_SOURCEFILE       , ".bas",60,30,90,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELINCLUDEFILE , "PB Head File:",10,45,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_INCLUDEFILE      , ".inc",60,44,90,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELRCFILE      , "RC File:",10,59,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_RCFILE           , ".rc",60,58,90,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELRCHEADFILE  , "RC Head File:",10,73,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_RCHEADFILE       , ".h", 60,72,90,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELPROJECTFILE , "PB Project File:",10,87,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_PROJECTFILEEXT   , ".pbp",60,86,90,12
+  CONTROL ADD CHECKBOX, hTab, %IDC_SETFILEEXT       , "Register these file extend in windows",60,103,128,12        '在系统中注册文件后缀并关联到本应用
+
+  CONTROL ADD CHECKBOX, hTab, %IDC_LOADRECENTFILES  , "Reload previous file set at start", 10,138,110,12 '自动加载最近
+  CONTROL ADD LABEL   , hTab, %IDC_LABELMAXFILE     , "Maximum Recent Files:", 20,158,80,12  '最近文件最大个数：
+  CONTROL ADD COMBOBOX, hTab, %IDC_MAXRECENTFILE    , ,100,157,30,60
+  CONTROL ADD FRAME   , hTab, %IDC_STARTUPFOLDER    , "Initial startup folder",135,130,90,43   '启动时的初始文件夹
+  CONTROL ADD OPTION  , hTab, %IDC_DEFAULTFOLDER    , "Start in Default folder",140,144,80,8, _  '用默认文件夹
+                                                      %WS_TABSTOP OR %BS_LEFT OR %BS_VCENTER OR %WS_GROUP
+  CONTROL ADD OPTION  , hTab, %IDC_LASTFOLDER       , "Start in Last folder",140,158,80,8     '用最后使用的文件夹
+  ' 第三个页面是Code Editor(代码编辑器)
+  DIALOG NEW hDlg, "", 119, 5, 473, 192, _
+              %WS_CHILD OR %WS_VISIBLE OR %DS_3DLOOK OR %DS_SETFONT OR _
+              %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(2)= hTab
+  CONTROL ADD LINE, hTab,  -1, "", 17, 7, 269, 1
+  CONTROL ADD LABEL, hTab, %IDC_LABELPAGESIGN, "Code Editor", 0, 3, 40, 8, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_GROUP, _
+              %WS_EX_NOPARENTNOTIFY
+  CONTROL ADD CHECKBOX, hTab, %IDC_AUTOINDENT       , "Auto indent", 5,17,50,8          '自动缩进
+  CONTROL ADD CHECKBOX, hTab, %IDC_KEEPUNDO         , "Keep Undo after save", 5,31,80,8 '保存后仍可撤销编辑
+  CONTROL ADD LABEL   , hTab, %IDC_LABELTABSIZE     , "Tab size: ", 5,45,30,8           '表达Tab的空格数
+  CONTROL ADD COMBOBOX, hTab, %IDC_TABSIZE          , , 35,44,30,60
+  CONTROL ADD CHECKBOX, hTab, %IDC_AUTOSAVE1        , "Auto save when", 5,59,64,8      '自动备份
+  CONTROL ADD LABEL   , hTab, %IDC_AUTOSAVE2        , "minutes", 87,59,40,8            '自动备份
+  CONTROL ADD TEXTBOX , hTab, %IDC_AUTOSAVETIME     , "5", 70,58,15,12
+  CONTROL ADD CHECKBOX, hTab, %IDC_SHOWLINENUMBER   , "Show line number", 5,73,70,8    '显示行数
+  CONTROL ADD CHECKBOX, hTab, %IDC_SHOWAUTOCOMPLETE , "Show auto complete tip", 5,87,90,8 '显示自动完成提示
+
+  CONTROL ADD FRAME   , hTab, %IDC_KEYWORDCASE      , "Keyword Case", 132,17,100,74
+  CONTROL ADD OPTION  , hTab, %IDC_NOCASECHANGE     , "No Case Change", 137,31,70,8, _  '无改变
+                                                      %WS_TABSTOP OR %BS_LEFT OR %BS_VCENTER OR %WS_GROUP
+  CONTROL ADD OPTION  , hTab, %IDC_UPPERCASE        , "Upper Case", 137,45,50,8   '大写
+  CONTROL ADD OPTION  , hTab, %IDC_MIXEDCASE        , "Mixed Case", 137,59,50,8   '首字母大写
+  CONTROL ADD OPTION  , hTab, %IDC_LOWERCASE        , "Lower Case", 137,73,50,8   '小写
+
+  CONTROL ADD FRAME   , hTab, %IDC_EDITORFONT       , "Editor Font", 0,104,120,87
+  CONTROL ADD LABEL   , hTab, %IDC_LABELFONT        , "Font:", 5,115,20,8
+  CONTROL ADD LABEL   , hTab, %IDC_LABELFONTSIZE    , "Size:", 80,115,20,8
+  CONTROL ADD COMBOBOX, hTab, %IDC_FONT             , , 5,127,70,80, _ '%CBS_OWNERDRAWFIXED OR
+                                                     %CBS_HASSTRINGS OR %CBS_DROPDOWNLIST OR _
+                                                      %CBS_SORT OR %WS_TABSTOP OR %WS_VSCROLL, %WS_EX_CLIENTEDGE
+  CONTROL ADD COMBOBOX, hTab, %IDC_FONTSIZE         , , 80,127,30,60
+  CONTROL ADD LABEL   , hTab, %IDC_LABELSAMPLETEXT  , "Sample text", 5,145,60,8
+  CONTROL ADD LABEL   , hTab, %IDC_SAMLETEXT        , "AaBbCcXxYyZz",5,157,105,23, _
+                                                      %SS_CENTER OR %SS_CENTERIMAGE, %WS_EX_CLIENTEDGE
+  CONTROL ADD LINE, hTab,  -1, "", 160, 99, 125, 1
+  CONTROL ADD LABEL   , hTab, %IDC_COLLAPSEEXPAND   , "Collapse && Expand", 132,95,60,8    '卷展
+  CONTROL ADD FRAME   , hTab, %IDC_COLLAPSELEVEL    , "Foldding Level", 132,104,100,50        '卷展级别
+  CONTROL ADD OPTION  , hTab, %IDC_NOCOLLAPSE       , "No Collapse", 137,114,80,8, _          '无卷展
+                                                      %WS_TABSTOP OR %BS_LEFT OR %BS_VCENTER OR %WS_GROUP
+  CONTROL ADD OPTION  , hTab, %IDC_KEYWORDLEVEL     , "Keyword level", 137,126,80,8           '关键字级
+  CONTROL ADD OPTION  , hTab, %IDC_SUBFUNLEVEL      , "Sub/Function level", 137,138,80,8      'sub/function级
+  CONTROL ADD FRAME   , hTab, %IDC_FOLDERICON       , "Folder icon",132,155,140,35             '卷展图标
+  CONTROL ADD OPTION  , hTab, %IDC_ARROWICON        , "Arrow", 137,169,30,8, _                '箭头
+                                                      %WS_TABSTOP OR %BS_LEFT OR %BS_VCENTER OR %WS_GROUP
+  CONTROL ADD OPTION  , hTab, %IDC_ADDMINUSE        , "+/-", 169,169,30,8                     '+/-
+  CONTROL ADD OPTION  , hTab, %IDC_CIRCLEICON       , "Circle", 199,169,30,8                  '圆形
+  CONTROL ADD OPTION  , hTab, %IDC_SQUAREICON       , "Square", 231,169,30,8                  '方菜
+
+  ' 第四个页面是Color(颜色)
+  DIALOG NEW hDlg, "", 119, 5, 473, 192, _
+              %WS_CHILD OR %WS_VISIBLE OR %DS_3DLOOK OR %DS_SETFONT OR _
+              %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(3)= hTab
+  CONTROL ADD LINE, hTab,  -1, "", 5, 7, 281, 1
+  CONTROL ADD LABEL, hTab, %IDC_LABELPAGESIGN, "Color", 0, 3, 20, 8, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_GROUP, _
+              %WS_EX_NOPARENTNOTIFY
+  CONTROL ADD CHECKBOX, hTab, %IDC_USECOLORINEDITOR , "Use Syntax Color in Editor", 10, 13, 135, 10  '在编辑器中使用语法颜色
+  CONTROL ADD CHECKBOX, hTab, %IDC_USECOLORINPRINTER, "Use Syntax Color when Printing", 10, 26, 135, 10 '打印时使用语法颜色
+  CONTROL ADD BUTTON  , hTab, %IDC_LOADDEFAULTCOLOR , "Load &Defaults", 167, 13, 50, 14 '加载默认值
+  CONTROL ADD BUTTON  , hTab, %IDC_ASSEMBLERBUTTON  , "Assembler", 10, 44, 50, 12       '汇编
+  CONTROL ADD BUTTON  , hTab, %IDC_COMMENTBUTTON    , "Comments", 10, 60, 50, 12        '注释
+  CONTROL ADD BUTTON  , hTab, %IDC_KEYWORDBUTTON    , "Keywords", 10, 76, 50, 12        '关键字
+  CONTROL ADD BUTTON  , hTab, %IDC_PBFORMSBUTTON    , "PB Forms", 10, 92, 50, 12        'PB窗体
+  CONTROL ADD BUTTON  , hTab, %IDC_STRINGBUTTON     , "Strings", 10, 108, 50, 12        '字符串
+  CONTROL ADD BUTTON  , hTab, %IDC_TEXTBUTTON       , "Text", 10, 124, 50, 12           '文本
+  CONTROL ADD BUTTON  , hTab, %IDC_SELECTIONBUTTON  , "Selection", 120, 44, 50, 12      '选中
+  CONTROL ADD BUTTON  , hTab, %IDC_BREAKPOINTBUTTON , "Breakpoint", 120, 60, 50, 12     '断点
+  CONTROL ADD BUTTON  , hTab, %IDC_BOOKMARKBUTTON   , "Bookmark", 120, 76, 50, 12       '书签
+  CONTROL ADD BUTTON  , hTab, %IDC_EXECPOINTBUTTON  , "Exec point", 120, 92, 50, 12     '执行点
+'  CONTROL ADD BUTTON  , hTab, %IDC_RESERVED1BUTTON  , "Reserved", 120, 108, 50, 12      '保留
+'  CONTROL ADD BUTTON  , hTab, %IDC_RESERVED2BUTTON  , "Reserved", 120, 124, 50, 12      '保留
+  CONTROL ADD LABEL   , hTab, %IDC_LABELASM         , "ASM", 62, 44, 45, 12,%SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELREM         , "REM", 62, 60, 45, 12,%SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELTCPOPEN     , "TCP OPEN", 62, 76, 45, 12, %SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELPBFORMS     , "#PBFORMS", 62, 92, 45, 12, %SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELLITERAL     , """Literal text", 62, 108, 45, 12, %SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELTEXT        , "x = 43", 62, 124, 45, 12,%SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELMARKED      , "Marked block", 172, 44, 45, 12,%SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELBREAKPOINT  , "DECR ix", 172, 60, 45, 12,%SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELBOOKMARK    , "3ECR ix", 172, 76, 45, 12, %SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  CONTROL ADD LABEL   , hTab, %IDC_LABELEXECPOINT   , "DECR ix", 172, 92, 45, 12,%SS_CENTERIMAGE OR %SS_CENTER,%WS_EX_CLIENTEDGE
+  ' 第五个页面是Window Editor(窗口编辑器)
+  DIALOG NEW hDlg, "", 119, 5, 473, 192, _
+              %WS_CHILD OR %WS_VISIBLE OR %DS_3DLOOK OR %DS_SETFONT OR _
+              %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(4)= hTab
+  CONTROL ADD LINE, hTab,  -1, "", 5, 7, 281, 1
+  CONTROL ADD LABEL, hTab, %IDC_LABELPAGESIGN, "Window Editor", 0, 3, 50, 8, _
+              %WS_CHILD OR %WS_VISIBLE OR %LBS_OWNERDRAWFIXED OR %LBS_HASSTRINGS OR %LBS_NOTIFY OR %WS_TABSTOP _
+              OR %WS_HSCROLL, %WS_EX_CLIENTEDGE
+  CONTROL ADD CHECKBOX, hTab, %IDC_SHOWGRID         , "Show grid", 10, 13, 50, 10
+  CONTROL ADD CHECKBOX, hTab, %IDC_GRIDSNAP         , "Snap to grid", 10, 27, 60, 10
+  CONTROL ADD LABEL   , hTab, %IDC_LABELGRIDSIZE    , "Grid size: ", 20, 41, 30, 10
+  CONTROL ADD COMBOBOX, hTab, %IDC_GRIDSIZE         , , 50, 40, 40, 60
+  CONTROL ADD CHECKBOX, hTab, %IDC_SNAPCONTROL      , "Snap between controls", 10, 55, 80, 10
+  CONTROL ADD FRAME   , hTab, %IDC_ADJUSTHANDLE     , "Adjust handle size", 0, 69, 100, 60
+  CONTROL ADD OPTION  , hTab, %IDC_SMALLHANDLE      , "Small", 10,83,30,10
+  CONTROL ADD OPTION  , hTab, %IDC_MEDIUMHANDLE     , "Medium", 10,97,40,10
+  CONTROL ADD OPTION  , hTab, %IDC_LARGEHANDLE      , "Large", 10,111,30,10
+
+  ' 第六个页面是Compiler(编译器)
+  DIALOG NEW hDlg, "", 119, 5, 473, 192, _
+              %WS_CHILD OR %WS_VISIBLE OR %DS_3DLOOK OR %DS_SETFONT OR _
+              %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(5)= hTab
+  CONTROL ADD LINE, hTab,  -1, "", 5, 7, 281, 1
+  CONTROL ADD LABEL, hTab, %IDC_LABELPAGESIGN, "Compiler", 0, 3, 30, 8, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_GROUP, _
+              %WS_EX_NOPARENTNOTIFY
+  CONTROL ADD FRAME   , hTab, %IDC_PATH             , "Paths", 0, 13, 265, 80
+  CONTROL ADD LABEL   , hTab, %IDC_LABELPBINCLUDE   , "PB Include:", 10,27,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_PBINCLUDE        , "", 60,26,180,12
+  CONTROL ADD BUTTON  , hTab, %IDC_PBINCLUDEBUTTON  , "...", 240,26,15,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELRCINCLUDE   , "RC Include:", 10,41,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_RCINCLUDE        , "", 60,40,180,12
+  CONTROL ADD BUTTON  , hTab, %IDC_RCINCLUDEBUTTON  , "...", 240,40,15,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELCOMPILER    , "Compiler File:",10,56,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_COMPILERFILE     , "", 60,55,180,12
+  CONTROL ADD BUTTON  , hTab, %IDC_COMPILEBUTTON    , "...", 240,55,15,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELWIN32HELP   , "Win32.hlp File:",10,70,50,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_WIN32HELP        , "", 60,69,180,12
+  CONTROL ADD BUTTON  , hTab, %IDC_WIN32HELPBUTTON  , "...", 240,69,15,12
+  CONTROL ADD FRAME   , hTab, %IDC_COMPILEOPTION    , "Compiler Options",0,97,100,60
+  CONTROL ADD CHECKBOX, hTab, %IDC_BEEPCOMPLETION   , "Beep on compiletion",10,111,80,10
+  CONTROL ADD CHECKBOX, hTab, %IDC_DISPLAYRESULT    , "Display Results",10,125,60,10
+  CONTROL ADD CHECKBOX, hTab, %IDC_CREATELOGFILE    , "Create Log file",10,139,60,10
+
+  ' 第七个页面是Printer(打印)
+  DIALOG NEW hDlg, "", 119, 5, 473, 192, _
+              %WS_CHILD OR %WS_VISIBLE OR %DS_3DLOOK OR %DS_SETFONT OR _
+              %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(6)= hTab
+  CONTROL ADD LINE, hTab,  -1, "", 5, 7, 281, 1
+  CONTROL ADD LABEL, hTab, %IDC_LABELPAGESIGN, "Printer", 0, 3, 30, 8, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_GROUP, _
+              %WS_EX_NOPARENTNOTIFY
+  CONTROL ADD CHECKBOX, hTab, %IDC_USECODECOLOR     , "Use the color for code in editor when print", 10, 13, 200, 10
+  CONTROL ADD CHECKBOX, hTab, %IDC_PRINTPAGENUMBER  , "Print page number on footer with the format [#/#]",10,27,200,10
+  CONTROL ADD CHECKBOX, hTab, %IDC_PRINTFILENAMETIME, "Print filename, time and date of the file on header",10,41,200,10
+  CONTROL ADD FRAME   , hTab, %IDC_PAGEMARGIN       , "Margin",0,55,83,75
+  CONTROL ADD LABEL   , hTab, %IDC_LABELTOPMARGIN   , "Top:", 10,69,25,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_TOPMARGIN        , "10", 40,68,20,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELBOTTOMMARGIN, "Bottom:", 10,83,25,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_BOTTOMMARGIN     , "10", 40,82,20,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELLEFTMARGIN  , "Left:", 10,97,25,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_LEFTMARGIN       , "10", 40,96,20,12
+  CONTROL ADD LABEL   , hTab, %IDC_LABELRIGHTMARGIN , "Right:", 10,111,25,8,%SS_RIGHT
+  CONTROL ADD TEXTBOX , hTab, %IDC_RIGHTMARGIN      , "10", 40,110,20,12
+  CONTROL ADD LABEL   , hTab, -1                    , "mm", 62,69,12,8
+  CONTROL ADD LABEL   , hTab, -1                    , "mm", 62,83,12,8
+  CONTROL ADD LABEL   , hTab, -1                    , "mm", 62,97,12,8
+  CONTROL ADD LABEL   , hTab, -1                    , "mm", 62,111,12,8
+
+  ' 第八个页面是Hotkey(热键)
+  DIALOG NEW hDlg, "", 119, 5, 473, 192, _
+              %WS_CHILD OR %WS_VISIBLE OR %DS_3DLOOK OR %DS_SETFONT OR _
+              %DS_CONTROL, _
+              %WS_EX_CONTROLPARENT TO hTab
+  htabDlg(7)= hTab
+  CONTROL ADD LINE, hTab,  -1, "", 5, 7, 281, 1
+  CONTROL ADD LABEL, hTab, %IDC_LABELPAGESIGN, "Hotkey", 0, 3, 30, 8, _
+              %WS_CHILD OR %WS_VISIBLE OR %WS_GROUP, _
+              %WS_EX_NOPARENTNOTIFY
+  CONTROL ADD LABEL   , hTab, %IDC_LABELHADHOTKEY     , "Defined Hotkey:", 5,13,80,8
+  CONTROL ADD LISTBOX , hTab, %IDC_HOTKEYLIST         , , 10, 25, 150, 130,%WS_CHILD OR _
+                              %WS_VISIBLE  OR %LBS_HASSTRINGS OR %LBS_NOTIFY OR _
+                              %WS_VSCROLL OR %WS_HSCROLL OR %LBS_USETABSTOPS, %WS_EX_CLIENTEDGE
+  DIM TabStops(1) AS LONG
+  ARRAY ASSIGN TabStops()= -60,40
+  CONTROL SEND hTab, %IDC_HOTKEYLIST, %LB_SETTABSTOPS, 2, VARPTR(TabStops(0))
+  CONTROL ADD BUTTON  , hTab, %IDC_DELETEHOTKEY       , "Delete", 170,125, 40,14
+  CONTROL ADD LABEL   , hTab, %IDC_LABELHOTKEYCOMMAND , "Command:", 5, 145, 40, 8
+  CONTROL ADD LABEL   , hTab, %IDC_LABELHOTKEY        , "Hotkey:", 85, 145, 30, 8
+  CONTROL ADD COMBOBOX, hTab, %IDC_COMMANDLIST        , , 10, 156, 70, 80
+  CONTROL ADD TEXTBOX , hTab, %IDC_HOTKEYTEXT         , "", 95, 156, 65, 12
+  CONTROL ADD BUTTON  , hTab, %IDC_UPDATEHOTKEY       , "Update", 170,155, 40,14 
+$DATABASENAME           = "data.db"
+$CONFIGTABLENAME        = "t_config"
+$DEFAULTCONFIGTABLENAME = "t_config_default"
+$DATASETTABLENAME       = "t_dataset"
+$STRINGLANGTABLENAME    = "t_string_lang"
